@@ -1,19 +1,30 @@
 import React, { Component } from 'react';
-import logo from './logo.svg';
+import { BrowserRouter as Router, Route } from 'react-router-dom';
 import './App.css';
+
+import Navbar from '../src/components/Navbar';
+import Login from '../src/components/auth/Login';
+import Register from '../src/components/auth/Register';
+import Home from '../src/components/auth/Home';
+import 'react-notifications/lib/notifications.css';
+import { NotificationContainer } from 'react-notifications';
 
 class App extends Component {
   render() {
     return (
-      <div className="App">
-        <div className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <h2>Welcome to React</h2>
+      <Router>
+        <div className="App">
+          <Navbar />
+          <Route exact path="/" component={Login} />
+          <div className="conatiner">
+            <Route extact path="/u/login" component={Login}/>
+            <Route extact path="/u/register" component={Register}/>
+            <Route extact path="/u/home" component={Home}/>
+
+          </div>
+          <NotificationContainer />
         </div>
-        <p className="App-intro">
-          To get started, edit <code>src/App.js</code> and save to reload.
-        </p>
-      </div>
+      </Router>
     );
   }
 }
