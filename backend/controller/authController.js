@@ -3,6 +3,9 @@ const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 process.env.SECRET_KEY = 'secret';
 const bcrypt = require('bcryptjs');
+'use strict';
+ var sessionstorage = require('sessionstorage');
+
 
 module.exports = ({
     home: async function (req, res) {
@@ -24,14 +27,14 @@ module.exports = ({
                     });
                     bcrypt.genSalt(10, (err, salt) => bcrypt.hash(newUser.password, salt, (err, hash) => {
                         newUser.password = hash;
-                        newUser.save(function (err, user) {
+                        newUser.save(function (err, data) {
                             if (err) {
                                 res.send('error:' + err);
                             } else {
                                 res.json({
                                     "message": "successfully registered",
-                                    "userEmail": user.email,
-                                    "userId": user.id
+                                    "userEmail": data.email,
+                                    "userId": data.id
                                 })
                             }
                         })
@@ -46,21 +49,36 @@ module.exports = ({
 
     },
 
-    login: async function (req, res) {
+    login: async function (req, res, next) {
         try {
-            const { email, password } = req.body;
-            User.findOne({ email: email }, function (err, user) {
+            User.findOne({ email: req.body.email }, function (err, user) {
                 if (err) {
                     next(err);
                 } else {
-                    if (bcrypt.compareSync(password, user.password)) {
-                        const token = jwt.sign({ id: user._id },
-                            process.env.SECRET_KEY, { expiresIn: '1h' });
+                    if (bcrypt.compareSync(req.body.password, user.password)) {
 
-                        res.json({
-                            status: "success", "message": "user is authenticated",
-                            data: { user: user, token: token }
-                        });
+                        const payload = {
+                            user: {
+                              id: user.id
+                            }
+                          };
+                    
+                          jwt.sign(
+                            payload,
+                            "randomString",
+                            {
+                              expiresIn: 3600
+                            },
+                            (err, token) => {
+                              if (err) throw err;
+                              sessionstorage.setItem('token', token);
+                              res.status(200).json({ user:user,
+                                token
+                              });
+                            }
+                          );
+
+                        
                     } else {
                         res.json({ status: "error", "message": "Invaild email and password", data: null });
                     }
@@ -73,18 +91,13 @@ module.exports = ({
     },
 
     profile: async function (req, res, next) {
-        var decoded = jwt.verify(req.headers['authorization'], process.env.SECRET_KEY)
-        User.findOne({
-            _id: decoded._id
-        }).then(user => {
-            if (user) {
-                res.json(user)
-            } else {
-                res.json({ "error": "User not found" });
-            }
-        }).catch(err => {
-            res.send('error', err);
-        })
+        try {
+            //use auth middleware
+            const user = await User.findById(req.user.id);
+            res.json(user);
+          } catch (e) {
+            res.send({ message: "Error in Fetching user" });
+          }
     }
 
 })

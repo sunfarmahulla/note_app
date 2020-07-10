@@ -4,11 +4,11 @@ const Note = require('../models/Note');
 module.exports = ({
     post: async function (req, res) {
         try {
-            const { user_id,title,new_note } = req.body;
+            const { user_id,title,note } = req.body;
             const newNote = new Note({
                 user_id: user_id,
                 title: title,
-                note: new_note,
+                note: note,
             });
             newNote.save(function (err, data) {
                 if (err) {
@@ -43,7 +43,8 @@ module.exports = ({
     },
     getByUserId: async function(req, res, next){
         try{
-            Note.find({user_id:req.params.userId}, function(err, data){
+            var id = req.params.ID;
+            Note.find({user_id:id}, function(err, data){
                 if(err){
                     next(err);
                 }else{
@@ -70,12 +71,12 @@ module.exports = ({
     },
     updateById: async function (req, res, next) {
         try{
-            const {new_note} = req.body;
-            Note.findByIdAndUpdate(req.params.noteID,{new_note}, function(err, data){
+           
+            Note.findByIdAndUpdate(req.params.noteID,{title:req.body.title ,note: req.body.note}, function(err, data){
                 if(err){
                     next(err);
                 }else{
-                    res.json({
+                    res.json({data,
                         status:"200",
                         "message":"successfully updated note"
                     });

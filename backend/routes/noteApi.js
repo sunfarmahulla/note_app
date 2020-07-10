@@ -7,7 +7,7 @@ const NoteController = require('../controller/notesController');
 
 router.post('/notes/post', NoteController.post);
 router.get('/notes/get/all', NoteController.getAll);
-router.get('/notes/get/:userID', NoteController.getByUserId);
+router.get('/notes/u/per-user/:ID', NoteController.getByUserId);
 router.get('/notes/get/:noteID', NoteController.getById);
 router.put('/notes/update/:noteID', NoteController.updateById);
 router.delete('/notes/delete/:noteID', NoteController.deleteById);
